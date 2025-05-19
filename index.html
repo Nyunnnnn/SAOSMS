@@ -1,0 +1,75 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SAO Monitoring System</title>
+
+  <!-- QR Code Library -->
+  <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
+
+  <!-- Barcode Scanner Library -->
+  <script src="https://unpkg.com/html5-qrcode@2.3.7/minified/html5-qrcode.min.js"></script>
+
+  <style>
+    body { font-family: sans-serif; margin: 20px; background: #f4f4f4; }
+    input, button { padding: 8px; margin: 5px; }
+    #scanner { margin-top: 20px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; background: #fff; }
+    th, td { border: 1px solid #ccc; padding: 10px; text-align: left; }
+    canvas { display: block; margin-top: 10px; }
+  </style>
+</head>
+<body>
+  <h1>SAO Student Monitoring System</h1>
+
+  <input type="text" id="student-name" placeholder="Student Name" />
+  <input type="text" id="student-id" placeholder="Student ID (Barcode)" />
+  <button onclick="addStudent()">Add Student</button>
+
+  <div id="qrcode"></div>
+  <div id="scanner"></div>
+
+  <table>
+    <thead><tr><th>Name</th><th>ID</th><th>QR Code</th></tr></thead>
+    <tbody id="student-table"></tbody>
+  </table>
+
+  <script>
+    const students = [];
+
+    function addStudent() {
+      const name = document.getElementById("student-name").value;
+      const id = document.getElementById("student-id").value;
+      if (!name || !id) return alert("Please enter all fields.");
+      students.push({ name, id });
+      renderTable();
+    }
+
+    function renderTable() {
+      const table = document.getElementById("student-table");
+      table.innerHTML = "";
+      students.forEach((s, i) => {
+        const row = document.createElement("tr");
+        row.innerHTML = `<td>${s.name}</td><td>${s.id}</td><td><canvas id='qr${i}'></canvas></td>`;
+        table.appendChild(row);
+        QRCode.toCanvas(document.getElementById(`qr${i}`), s.id);
+      });
+    }
+
+    const html5QrCode = new Html5Qrcode("scanner");
+    Html5Qrcode.getCameras().then(devices => {
+      if (devices && devices.length) {
+        html5QrCode.start(
+          devices[0].id,
+          { fps: 10, qrbox: 250 },
+          (decodedText, decodedResult) => {
+            alert("Scanned: " + decodedText);
+          }
+        );
+      }
+    }).catch(err => console.error(err));
+  </script>
+</body>
+</html>
